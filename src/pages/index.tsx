@@ -81,6 +81,44 @@ const ChatFormatter = () => {
     setCurrentRole(currentRole === "human" ? "gpt" : "human");
   };
 
+  const uploadFromClipboard = async () => {
+    try {
+      const clipboardText = await navigator.clipboard.readText();
+      let parsedData;
+      try {
+        parsedData = JSON.parse(clipboardText);
+      } catch (error) {
+        alert("Invalid JSON in clipboard. Please copy a valid JSON string.");
+        return;
+      }
+
+      if (
+        Array.isArray(parsedData.conversations) &&
+        parsedData.conversations.length > 0
+      ) {
+        const validMessages = parsedData.conversations.filter(
+          (msg: any) =>
+            typeof msg.from === "string" && typeof msg.value === "string"
+        );
+        if (validMessages.length === parsedData.conversations.length) {
+          setMessages(validMessages);
+        } else {
+          alert(
+            "Some messages in the JSON are invalid. Please check the format."
+          );
+        }
+      } else {
+        alert(
+          "Invalid JSON structure. Expected an object with a 'conversations' array."
+        );
+      }
+    } catch (error) {
+      alert(
+        "Failed to read clipboard. Please make sure you've granted permission."
+      );
+    }
+  };
+
   const downloadJSON = () => {
     const conversation = { conversations: messages };
     const jsonString = JSON.stringify(conversation, null, 2);
@@ -191,13 +229,16 @@ const ChatFormatter = () => {
 
           <div className="flex space-x-4">
             <Button onClick={downloadJSON} variant="outline" size="sm">
-              <Download size={14} className="mr-2" /> Download JSON
+              <Download size={14} className="mr-2" /> Download
             </Button>
             <Button onClick={copyJSON} variant="outline" size="sm">
               <Copy size={14} className="mr-2" /> Copy JSON
             </Button>
+            <Button onClick={uploadFromClipboard} variant="outline" size="sm">
+              <Copy size={14} className="mr-2" /> Paste Chat
+            </Button>
             <Button onClick={clearHistory} variant="outline" size="sm">
-              <Trash2 size={14} className="mr-2" /> Clear History
+              <Trash2 size={14} className="mr-2" /> Clear
             </Button>
           </div>
         </div>
